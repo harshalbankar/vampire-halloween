@@ -529,16 +529,16 @@
           <img id="stage-character-img" class="stage-img" src="" alt="Character">
           <!-- Clickable Hotspots overlay on full body -->
           <div id="hotspots-wrapper" class="hotspots-wrapper"></div>
-          <!-- Click-and-Hold Clue discovery indicator (Figma 13:626) -->
-          <div id="clue-hold-target" class="clue-discovery-indicator" style="display:none;">
-            <div class="hold-progress-ring">
-              <svg viewBox="0 0 72 72">
-                <circle class="bg-circle" cx="36" cy="36" r="30" fill="rgba(10, 6, 8, 0.5)"></circle>
-                <circle id="hold-progress-circle" class="progress-circle" cx="36" cy="36" r="30"></circle>
-              </svg>
-            </div>
-            <span class="hold-prompt-text">click and hold to find clue</span>
+        </div>
+        <!-- Click-and-Hold Clue discovery indicator — outside character-image-box so parallax doesn't affect it -->
+        <div id="clue-hold-target" class="clue-discovery-indicator" style="display:none;">
+          <div class="hold-progress-ring">
+            <svg viewBox="0 0 72 72">
+              <circle class="bg-circle" cx="36" cy="36" r="30" fill="rgba(10, 6, 8, 0.5)"></circle>
+              <circle id="hold-progress-circle" class="progress-circle" cx="36" cy="36" r="30"></circle>
+            </svg>
           </div>
+          <span class="hold-prompt-text">click and hold to find clue</span>
         </div>
       </div>
 

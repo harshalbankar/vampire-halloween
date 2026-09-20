@@ -619,7 +619,9 @@ body.intro-showing .top-ui .clues-box {
   box-shadow: none !important;
 }
 
-/* ── Click-and-Hold Clue Discovery Overlay (Figma 13:626, 13:733) ── */
+/* ── Click-and-Hold Clue Discovery Overlay ── */
+/* Positioned inside .character-display-container (not .character-image-box) so it's
+   completely unaffected by the parallax transform applied to #stage-character-img. */
 .clue-discovery-indicator {
   position: absolute;
   top: 50%;
@@ -630,33 +632,31 @@ body.intro-showing .top-ui .clues-box {
   align-items: center;
   justify-content: center;
   gap: 16px;
+  z-index: 9999;
+  /* The entire div is the clickable hitbox — generous size */
+  width: 500px;
+  min-height: 300px;
+  padding: 60px;
+  box-sizing: border-box;
+  overflow: visible;
+  border-radius: 32px;
+  /* Invisible but clickable background */
+  background-color: transparent !important;
+  /* All interaction goes through this parent */
+  pointer-events: auto !important;
   cursor: pointer !important;
   user-select: none !important;
   -webkit-user-select: none !important;
   touch-action: none !important;
-  z-index: 160;
-  pointer-events: auto !important;
-  /* Unified hitbox enclosing both the circle (72px + 16px ::before padding each side = 104px) + gap + text */
-  width: 400px;
-  min-height: 180px;
-  padding: 32px 40px;
-  border-radius: 32px;
-  box-sizing: border-box;
-  overflow: visible;
-  background-color: rgba(0, 0, 0, 0.001) !important;
+  -webkit-tap-highlight-color: transparent;
+  /* No shadows anywhere */
   box-shadow: none !important;
   filter: none !important;
-  -webkit-tap-highlight-color: transparent;
 }
 
-.clue-discovery-indicator::before,
-.clue-discovery-indicator::after {
-  display: none !important;
-  content: none !important;
-}
-
-.clue-discovery-indicator,
+/* All children are non-interactive — the parent div handles all clicks */
 .clue-discovery-indicator * {
+  pointer-events: none !important;
   cursor: pointer !important;
 }
 
@@ -667,27 +667,11 @@ body.intro-showing .top-ui .clues-box {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50% !important;
-  background-color: rgba(10, 6, 8, 0.5) !important;
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  touch-action: none !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
+  border-radius: 50%;
+  background-color: rgba(10, 6, 8, 0.5);
   transition: transform 0.25s ease;
   box-shadow: none !important;
   filter: none !important;
-}
-
-/* Expansive circular hitbox around the ring so the entire circle and its perimeter are effortless to click */
-.hold-progress-ring::before {
-  content: '';
-  position: absolute;
-  inset: -16px;
-  border-radius: 50%;
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  background: transparent !important;
 }
 
 .clue-discovery-indicator:hover .hold-progress-ring {
@@ -698,23 +682,15 @@ body.intro-showing .top-ui .clues-box {
   transform: rotate(-90deg);
   width: 72px;
   height: 72px;
-  pointer-events: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-
-.hold-progress-ring circle {
-  pointer-events: none !important;
   box-shadow: none !important;
   filter: none !important;
 }
 
 .hold-progress-ring circle.bg-circle {
-  fill: rgba(10, 6, 8, 0.5) !important;
+  fill: rgba(10, 6, 8, 0.5);
   stroke: #f9e8d9;
   stroke-opacity: 0.25;
   stroke-width: 6;
-  pointer-events: none !important;
   transition: stroke-opacity 0.25s ease;
   box-shadow: none !important;
   filter: none !important;
@@ -725,22 +701,15 @@ body.intro-showing .top-ui .clues-box {
 }
 
 .hold-progress-ring circle.progress-circle {
-  fill: none !important;
+  fill: none;
   stroke: #f9e8d9;
   stroke-width: 6;
   stroke-linecap: round;
   stroke-dasharray: 188.5; /* 2 * PI * 30 */
   stroke-dashoffset: 188.5;
   transition: stroke-dashoffset 0.05s linear;
-  pointer-events: none !important;
   box-shadow: none !important;
   filter: none !important;
-}
-
-.hold-progress-ring.active circle.progress-circle,
-.clue-discovery-indicator.holding .hold-progress-ring circle.progress-circle {
-  filter: none !important;
-  box-shadow: none !important;
 }
 
 .hold-prompt-text {
@@ -748,11 +717,11 @@ body.intro-showing .top-ui .clues-box {
   font-size: 16px;
   color: #f9e8d9;
   letter-spacing: 0.6px;
+  white-space: nowrap;
+  transition: color 0.25s ease;
   text-shadow: none !important;
   box-shadow: none !important;
   filter: none !important;
-  white-space: nowrap;
-  transition: color 0.25s ease;
 }
 
 .clue-discovery-indicator:hover .hold-prompt-text {

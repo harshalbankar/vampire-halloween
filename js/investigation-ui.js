@@ -298,20 +298,9 @@ export class InvestigationUI {
       this.updatePumpkinHoldState(false);
     };
 
-    const ring = this.clueHoldTarget.querySelector('.hold-progress-ring');
-    const text = this.clueHoldTarget.querySelector('.hold-prompt-text');
-
+    // Single listener on the container — all children are pointer-events:none via CSS
     this.clueHoldTarget.addEventListener('pointerdown', startHold);
     this.clueHoldTarget.addEventListener('mousedown', startHold);
-
-    if (ring) {
-      ring.addEventListener('pointerdown', startHold);
-      ring.addEventListener('mousedown', startHold);
-    }
-    if (text) {
-      text.addEventListener('pointerdown', startHold);
-      text.addEventListener('mousedown', startHold);
-    }
 
     window.addEventListener('pointerup', cancelHold);
     window.addEventListener('mouseup', cancelHold);

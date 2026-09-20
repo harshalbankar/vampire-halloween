@@ -64,12 +64,12 @@ export class BatSystem {
     return {
       px:           -0.15 - staggerOffset - Math.random() * 0.12, // start staggered off-screen left
       py:           0.10 + Math.random() * 0.48,                  // vertical band 10–58% from top
-      speed:        0.0028 + Math.random() * 0.0014,              // slower, graceful glide across the sky
-      undulateAmp:  0.014 + Math.random() * 0.012,
-      undulateFreq: 0.65  + Math.random() * 0.35,
+      speed:        0.0065 + Math.random() * 0.0025,              // faster flight across the sky
+      undulateAmp:  0.018 + Math.random() * 0.014,
+      undulateFreq: 0.75  + Math.random() * 0.35,
       undulatePhase: Math.random() * Math.PI * 2,
       size:         22 + Math.random() * 12,
-      flapSpeed:    0.20 + Math.random() * 0.08,                  // gentle, rhythmic wing flaps
+      flapSpeed:    0.34 + Math.random() * 0.12,                  // lively, faster wing flaps
       flapPhase:    Math.random() * Math.PI * 2
     };
   }
@@ -84,12 +84,12 @@ export class BatSystem {
       if (b.px > 1.15) {
         b.px           = -0.15 - Math.random() * 0.25;
         b.py           = 0.08 + Math.random() * 0.50;
-        b.undulateAmp  = 0.018 + Math.random() * 0.018;
-        b.undulateFreq = 0.85  + Math.random() * 0.55;
+        b.undulateAmp  = 0.020 + Math.random() * 0.018;
+        b.undulateFreq = 0.90  + Math.random() * 0.50;
         b.undulatePhase = Math.random() * Math.PI * 2;
         b.size         = 20 + Math.random() * 14;
-        b.speed        = 0.0028 + Math.random() * 0.0014; // keep slow, graceful glide on reset
-        b.flapSpeed    = 0.20  + Math.random() * 0.08;
+        b.speed        = 0.0065 + Math.random() * 0.0025;         // maintain faster flight speed on reset
+        b.flapSpeed    = 0.34  + Math.random() * 0.12;           // maintain faster wing flaps
       }
 
       const undulate = Math.sin(b.flapPhase * b.undulateFreq + b.undulatePhase)
