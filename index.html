@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>vampire halloween</title>
+  <link rel="icon" type="image/png" href="https://ik.imagekit.io/HUDs/halloween/favicon.png">
+  <link rel="shortcut icon" type="image/png" href="https://ik.imagekit.io/HUDs/halloween/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Autour+One&family=Intel+One+Mono:wght@400;500;600&family=Jolly+Lodger&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Minimalist White Line Preloader (Figma node 17:2) -->
+  <div id="preloader" class="preloader">
+    <div class="preloader-text">Halloween party starting soon . . .</div>
+    <div id="preloader-progress-bar" class="preloader-line"></div>
+  </div>
+
+  <main id="experience-container">
+    <!-- 3D Perspective Viewport for Parallax Tilt -->
+    <div id="scene-viewport">
+      <!-- WebGL Shader Canvas: Background, Rain Water, Refraction, Volumetric Smoke & Lighting -->
+      <canvas id="gl-canvas"></canvas>
+      
+      <!-- Bats Flying Overlay Canvas -->
+      <canvas id="bats-canvas"></canvas>
+    </div>
+
+    <!-- Atmospheric Vignette -->
+    <div class="vignette-overlay"></div>
+
+    <!-- Time Travel Flash Surge Overlay -->
+    <div id="flash-overlay" class="time-travel-flash"></div>
+
+    <!-- UI Overlay matching Figma node 7:3 -->
+    <div class="ui-overlay">
+      <!-- Top Right: Music Toggle (Figma node 7:13) -->
+      <button id="music-toggle" class="music-toggle-btn active" aria-label="Toggle background music">
+        <span class="music-label">music:</span>
+        <span id="music-status" class="music-status">on</span>
+        <span id="audio-wave" class="audio-wave playing">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
+      <div id="audio-hint" class="audio-hint">Click to enable soundscape</div>
+
+      <!-- Bottom Center: Start Experience Button (Figma node 7:5) -->
+      <button id="start-btn" class="start-btn pulse" aria-label="Start Halloween Experience">
+        <span>start experience</span>
+      </button>
+    </div>
+    <div id="transition-overlay" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:1000;transition:opacity 0.7s ease;"></div>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

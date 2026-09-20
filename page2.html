@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>vampire halloween</title>
+  <link rel="icon" type="image/png" href="https://ik.imagekit.io/HUDs/halloween/favicon.png">
+  <link rel="shortcut icon" type="image/png" href="https://ik.imagekit.io/HUDs/halloween/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Autour+One&family=Intel+One+Mono:wght@400;500;600&family=Jolly+Lodger&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/game.css">
+  
+  <script>
+    // If refreshed while inside the experience, go back outside (index.html)
+    (function() {
+      const navEntries = performance.getEntriesByType('navigation');
+      const isReload = (navEntries.length > 0 && navEntries[0].type === 'reload') ||
+                       (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+      if (isReload) {
+        window.location.replace('index.html');
+      }
+    })();
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #0a0608;
+      font-family: 'Autour One', cursive;
+      user-select: none;
+    }
+
+    /* ── Fade in on load ── */
+    body { animation: fadeInPage 1.2s ease forwards; }
+    @keyframes fadeInPage {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ── Parallax scene wrapper ── */
+    #scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Background ── */
+    #bg-layer {
+      position: absolute;
+      top: -5%; left: -5%;
+      width: 110%; height: 110%;
+      will-change: transform;
+      transition: filter 0.4s ease;
+      z-index: 1;
+    }
+    #bg-layer img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    /* ── Characters (Strictly locked 760px height, matching hitbox height) ── */
+    :root {
+      --char-h: 760px;
+    }
+
+    #chars-layer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 760px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0 clamp(16px, 3vw, 48px);
+      pointer-events: auto;
+      will-change: transform;
+      z-index: 10;
+    }
+
+    .char-slot {
+      position: relative;
+      height: 760px;
+      flex: 1 1 0;
+      max-width: 270px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      pointer-events: none;
+      cursor: pointer;
+      overflow: visible;
+      transition: z-index 0.2s ease;
+    }
+
+    .char-slot img {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 760px !important;           /* Strictly 760px tall image */
+      width: auto !important;
+      max-width: none !important;
+      object-fit: contain;
+      object-position: bottom center;
+      transition: filter 0.35s ease;
+      filter: brightness(1) drop-shadow(0 15px 35px rgba(0, 0, 0, 0.85));
+      display: block;
+      pointer-events: none;               /* Avoid transparent PNG bounds hijacking side character hover */
+    }
+
+    /* Hover states: Dim others, background, and foreground without zooming or shrinking characters */
+    #chars-layer.hover-active .char-slot img {
+      filter: brightness(0.28) blur(1.5px);
+    }
+    #chars-layer.hover-active .char-slot.hovered {
+      z-index: 50; /* Bring hovered character in front */
+    }
+    #chars-layer.hover-active .char-slot.hovered img {
+      filter: brightness(1.15) drop-shadow(0 20px 40px rgba(255, 190, 110, 0.35)) !important;
+    }
+    #bg-layer.dimmed {
+      filter: brightness(0.25);
+    }
+    #fg-layer.dimmed {
+      filter: brightness(0.25);
+    }
+
+    /* ── Foreground chairs & tables (Zoomed in & darker) ── */
+    #fg-layer {
+      position: absolute;
+      bottom: -6%;
+      left: -8%;
+      width: 116%;
+      pointer-events: none;
+      will-change: transform;
+      filter: brightness(0.62);
+      z-index: 20;
+      transition: filter 0.4s ease;
+    }
+    #fg-layer img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ── Top UI matching Figma (56px gap between clues and music) ── */
+    .top-ui {
+      position: absolute;
+      top: 48px;
+      right: 48px;
+      display: flex;
+      gap: 56px;
+      align-items: center;
+      z-index: 1050;
+    }
+
+    body.investigating .top-ui,
+    body.accusing .top-ui,
+    body:has(#investigation-overlay.active) .top-ui,
+    body:has(#accusation-modal.visible) .top-ui {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    body.investigating .pub-logo,
+    body.accusing .pub-logo,
+    body:has(#investigation-overlay.active) .pub-logo,
+    body:has(#accusation-modal.visible) .pub-logo {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .clues-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(249,232,217,0.4);
+      padding: 12px 20px;
+      font-family: 'Autour One', cursive;
+      font-size: 14px;
+      color: rgba(249,232,217,0.6);
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(8px);
+      background: rgba(10,6,8,0.45);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .clues-box:hover {
+      border-color: rgba(249,232,217,0.85);
+    }
+    .clues-box .clue-circle {
+      width: 16px; height: 16px;
+      border: 1.5px solid rgba(249,232,217,0.45);
+      border-radius: 50%;
+      background: transparent;
+      display: inline-block;
+    }
+
+    .music-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 132px;
+      height: 44px;
+      justify-content: center;
+      border: 1px solid rgba(249,232,217,0.4);
+      background: rgba(10,6,8,0.45);
+      backdrop-filter: blur(10px);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Autour One', cursive;
+      font-size: 14px;
+      color: #f9e8d9;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+    }
+    .music-btn:hover {
+      border-color: rgba(249,232,217,0.85);
+    }
+    .music-label { color: rgba(249,232,217,0.6); }
+    .audio-bars {
+      display: flex; gap: 2px; align-items: center; height: 12px;
+    }
+    .audio-bars span {
+      display: block; width: 2px; background: #f9e8d9; border-radius: 1px;
+      height: 3px;
+    }
+    .audio-bars.playing span:nth-child(1) { animation: bar 0.9s ease infinite alternate; }
+    .audio-bars.playing span:nth-child(2) { animation: bar 0.7s 0.2s ease infinite alternate; }
+    .audio-bars.playing span:nth-child(3) { animation: bar 1.1s 0.4s ease infinite alternate; }
+    @keyframes bar { from { height: 3px; } to { height: 12px; } }
+
+    /* ── Bottom subtitle (Full width of display, no stroke, lifted 24px) ── */
+    .bottom-bar {
+      position: absolute;
+      bottom: 24px;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: none;
+      padding: 12px 24px;
+      text-align: center;
+      z-index: 50;
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      font-size: 15px;
+      color: #f9e8d9;
+      letter-spacing: 0.8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      transition: opacity 0.5s ease;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .bottom-bar.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ── Vignette ── */
+    .vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 50% 50%,
+        transparent 45%, rgba(3,2,5,0.7) 100%);
+      z-index: 15;
+    }
+
+    /* ── Blur Fade In Keyframe Animation ── */
+    @keyframes blurFadeIn {
+      0% {
+        opacity: 0;
+        filter: blur(24px);
+        transform: translateY(20px) scale(0.96);
+      }
+      60% {
+        opacity: 0.8;
+        filter: blur(5px);
+      }
+      100% {
+        opacity: 1;
+        filter: blur(0px);
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* ── Intro Modal ("Find vampire" - Figma node 12:124) ── */
+    .intro-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 6, 8, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      pointer-events: auto;
+      text-align: center;
+      padding: 24px;
+      transition: opacity 1.0s cubic-bezier(0.4, 0, 0.2, 1),
+                  backdrop-filter 1.0s cubic-bezier(0.4, 0, 0.2, 1),
+                  -webkit-backdrop-filter 1.0s cubic-bezier(0.4, 0, 0.2, 1),
+                  visibility 1.0s ease;
+    }
+
+    /* Natural slow blur fade out */
+    .intro-modal.fade-out {
+      opacity: 0;
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      visibility: hidden;
+      pointer-events: none !important;
+    }
+
+    .intro-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 52px;
+      max-width: 600px;
+      margin: auto;
+      pointer-events: auto;
+      transition: filter 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .intro-modal.fade-out .intro-content {
+      filter: blur(22px);
+      opacity: 0;
+      transform: scale(1.06) translateY(-16px);
+      pointer-events: none !important;
+    }
+
+    .intro-text-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+
+    /* Title and description blur fade-in together closely without delay */
+    .intro-title {
+      font-family: 'Jolly Lodger', cursive;
+      font-size: clamp(110px, 14vw, 200px);
+      line-height: 0.82;
+      color: #f9e8d9;
+      text-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 30px rgba(249, 232, 217, 0.2);
+      letter-spacing: 2px;
+      margin: 0;
+      opacity: 0;
+      animation: blurFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+    }
+
+    .intro-subtitle {
+      font-family: 'Autour One', cursive;
+      font-size: clamp(15px, 1.35vw, 19px);
+      line-height: 1.5;
+      color: rgba(249, 232, 217, 0.7);
+      max-width: 520px;
+      margin: 0;
+      letter-spacing: 0.5px;
+      opacity: 0;
+      animation: blurFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+    }
+
+    .intro-cta {
+      background: none;
+      border: none;
+      color: #f9e8d9;
+      font-family: 'Autour One', cursive;
+      font-size: clamp(17px, 1.5vw, 21px);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
+      margin: -8px 0;
+      position: relative;
+      z-index: 1010;
+      pointer-events: auto;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+      outline: none;
+      opacity: 0;
+      animation: blurFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.22s forwards;
+    }
+    .intro-cta * {
+      pointer-events: none;
+    }
+    .intro-cta .cta-underline {
+      text-decoration: underline;
+      text-underline-offset: 6px;
+    }
+    .intro-cta .cta-arrow {
+      transition: transform 0.3s ease;
+    }
+    .intro-cta:hover {
+      color: #ffffff;
+      text-shadow: 0 0 16px rgba(249, 232, 217, 0.8);
+    }
+    .intro-cta:hover .cta-arrow {
+      transform: translateX(6px);
+    }
+
+    .intro-bottom-note {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding-bottom: 40px;
+      font-family: 'Intel One Mono', monospace;
+      font-size: 16px;
+      line-height: 1.5;
+      color: rgba(249, 232, 217, 0.7);
+      text-align: center;
+      letter-spacing: 0.2px;
+      pointer-events: none;
+      z-index: 1002;
+      opacity: 0;
+      animation: blurFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+    }
+  </style>
+</head>
+<body class="intro-showing">
+<div id="scene">
+  <!-- Background -->
+  <div id="bg-layer">
+    <img src="assets/pub-bg.png" alt="Pub Interior Background">
+  </div>
+
+  <!-- Characters Layer -->
+  <div id="chars-layer"></div>
+
+  <!-- Vignette overlay -->
+  <div class="vignette"></div>
+
+  <!-- Foreground chairs & tables (front-parallax.png zoomed in) -->
+  <div id="fg-layer">
+    <img src="assets/front-parallax.png" alt="Foreground Tables and Chairs">
+  </div>
+
+  <!-- Top UI -->
+  <div class="top-ui">
+    <div class="clues-box">
+      <span>clues:</span>
+      <span class="pumpkin-slot"><img src="assets/icons/pumpkin-empty.svg" alt="clue 1"></span>
+      <span class="pumpkin-slot"><img src="assets/icons/pumpkin-empty.svg" alt="clue 2"></span>
+      <span class="pumpkin-slot"><img src="assets/icons/pumpkin-empty.svg" alt="clue 3"></span>
+    </div>
+    <button class="music-btn" id="music-btn" aria-label="Toggle music">
+      <span class="music-label">music:</span>
+      <span id="music-status">on</span>
+      <span class="audio-bars playing" id="audio-bars">
+        <span></span><span></span><span></span>
+      </span>
+    </button>
+  </div>
+
+  <!-- Centered Pub Logo (160px width, 32px from top) -->
+  <img id="pub-logo" class="pub-logo" src="https://ik.imagekit.io/HUDs/halloween/logo.png" alt="Halloween Logo">
+
+  <!-- Bottom subtitle (lifted 24px, shown once CTA is clicked) -->
+  <div id="bottom-bar" class="bottom-bar">
+    hover and click to find clues
+  </div>
+
+  <!-- Intro Modal matching Figma node 12:124 ("Find vampire") -->
+  <div id="intro-modal" class="intro-modal">
+    <div class="intro-content">
+      <div class="intro-text-group">
+        <h1 class="intro-title">Find<br>vampire</h1>
+        <p class="intro-subtitle">they know who is the vampire but they are afraid to tell, find clues</p>
+      </div>
+      <button id="find-cta" class="intro-cta" aria-label="Let's find it">
+        <span class="cta-underline">Let’s find it</span>
+        <span class="cta-arrow">→</span>
+      </button>
+    </div>
+    <!-- Bottom note on intro/loading screen (40px bottom padding, 2 lines, Intel One Mono 16px) -->
+    <div class="intro-bottom-note">
+      find clues through their, hands, shoes and drinks,<br>
+      click and hold on ( o ) to find out hidden clues
+    </div>
+  </div>
+
+  <!-- Investigation Mode Overlay (Figma node 13:125) -->
+  <div id="investigation-overlay">
+    <!-- Left Vertical Toolbar (Figma 13:162) -->
+    <div class="investigation-left-toolbar">
+      <div class="toolbar-hint-text">find clues through here</div>
+      <button class="inspect-tool-btn" id="tool-btn-face" data-tooltip="Inspect Face" aria-label="Inspect Face">
+        <img src="assets/icons/face-id.svg" alt="Face">
+      </button>
+      <button class="inspect-tool-btn" id="tool-btn-drink" data-tooltip="Inspect Drink" aria-label="Inspect Drink">
+        <img src="assets/icons/drink.svg" alt="Drink">
+      </button>
+      <button class="inspect-tool-btn" id="tool-btn-purse" data-tooltip="Inspect Personal Item" aria-label="Inspect Bag/Purse">
+        <img src="assets/icons/wallet.svg" alt="Wallet">
+      </button>
+      <button class="inspect-tool-btn" id="tool-btn-shoe" data-tooltip="Inspect Shoes" aria-label="Inspect Shoes">
+        <img src="assets/icons/shoes.svg" alt="Shoes">
+      </button>
+      <button class="inspect-tool-btn" id="tool-btn-hand" data-tooltip="Inspect Hands" aria-label="Inspect Hands">
+        <img src="assets/icons/hand.svg" alt="Hand">
+      </button>
+    </div>
+
+    <!-- Center Character Stage (Figma 13:145, 13:149, 13:152) -->
+    <div class="character-stage">
+      <!-- Top Center: Back to Table centered in image block (Figma 13:148) -->
+      <button class="back-to-table-btn" id="back-to-table-btn" aria-label="Back to table">
+        ← back to table
+      </button>
+
+      <div class="character-display-container">
+        <div class="character-image-box">
+          <img id="stage-character-img" class="stage-img" src="" alt="Character">
+          <!-- Clickable Hotspots overlay on full body -->
+          <div id="hotspots-wrapper" class="hotspots-wrapper"></div>
+          <!-- Click-and-Hold Clue discovery indicator (Figma 13:626) -->
+          <div id="clue-hold-target" class="clue-discovery-indicator" style="display:none;">
+            <div class="hold-progress-ring">
+              <svg viewBox="0 0 72 72">
+                <circle class="bg-circle" cx="36" cy="36" r="30" fill="rgba(10, 6, 8, 0.5)"></circle>
+                <circle id="hold-progress-circle" class="progress-circle" cx="36" cy="36" r="30"></circle>
+              </svg>
+            </div>
+            <span class="hold-prompt-text">click and hold to find clue</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Black gradient overlay sitting between image and typography across all of the page -->
+      <div class="investigation-gradient-overlay"></div>
+
+      <!-- Bottom Name and Navigation (Figma 13:152) -->
+      <div class="character-bottom-group">
+        <h2 id="character-name-display" class="character-name-display">Dylan</h2>
+        <div class="character-nav-pills">
+          <button id="prev-char-btn" class="char-nav-btn" aria-label="Previous character">
+            <img src="assets/icons/arrow-left.svg" alt="Previous">
+          </button>
+          <button id="next-char-btn" class="char-nav-btn" aria-label="Next character">
+            <img src="assets/icons/arrow-right.svg" alt="Next">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Evidence & Dialogue Panel (Figma 13:191) -->
+    <div class="investigation-right-panel">
+      <div class="panel-top-section">
+        <div class="panel-header-controls">
+          <div class="counter-box">
+            <span>clues:</span>
+            <div class="pumpkins-row">
+              <img id="inv-pumpkin-0" class="pumpkin-indicator" src="assets/icons/pumpkin-empty.svg" alt="clue 1">
+              <img id="inv-pumpkin-1" class="pumpkin-indicator" src="assets/icons/pumpkin-empty.svg" alt="clue 2">
+              <img id="inv-pumpkin-2" class="pumpkin-indicator" src="assets/icons/pumpkin-empty.svg" alt="clue 3">
+            </div>
+          </div>
+          <button class="music-btn" id="inv-music-btn" aria-label="Toggle music">
+            <span class="music-label">music:</span>
+            <span id="inv-music-status">on</span>
+            <span class="audio-bars playing" id="inv-audio-bars">
+              <span></span><span></span><span></span>
+            </span>
+          </button>
+        </div>
+
+        <!-- Large Evidence Box (Figma 13:234, 13:851) -->
+        <div class="large-evidence-box">
+          <div id="evidence-empty" class="evidence-empty-view">
+            <p>not any<br>clues found</p>
+          </div>
+          <div id="evidence-list" class="evidence-active-list" style="display:none;"></div>
+        </div>
+
+        <!-- Character Dialogue Block (Figma 13:237) -->
+        <div class="character-dialogue-block">
+          <p id="dialogue-text" class="dialogue-text-p"></p>
+          <p id="dialogue-author" class="dialogue-author-p"></p>
+        </div>
+      </div>
+
+      <!-- Bottom Section: Found Vampire Action (Figma 13:242) -->
+      <div class="panel-bottom-section">
+        <p class="action-hint-text">find all clues then report vampire</p>
+        <button id="found-vampire-btn" class="found-vampire-btn" aria-label="Found Vampire">
+          found vampire
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clue Reveal Modal (Figma node 13:888 / 13:1022) -->
+  <div id="clue-modal" class="clue-reveal-modal">
+    <div class="parchment-card">
+      <h3 id="clue-modal-title" class="parchment-header">clue 1</h3>
+      <p id="clue-modal-text" class="parchment-body">clue text...</p>
+      <div class="parchment-footer">
+        <button id="clue-understood-btn" class="understood-btn">understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vampire Accusation Modal (Section 27) -->
+  <div id="accusation-modal" class="accusation-modal">
+    <!-- Centered Logo at top (160px width, 32px from top) -->
+    <img class="accusation-logo" src="https://ik.imagekit.io/HUDs/halloween/logo.png" alt="Halloween Logo">
+
+    <!-- Top Right: Clues button & Music toggle with 56px gap -->
+    <div class="accusation-top-ui">
+      <div class="clues-box" id="accuse-clues-box" title="View discovered clues">
+        <span>clues:</span>
+        <span class="pumpkin-slot"><img id="accuse-pumpkin-0" src="assets/icons/pumpkin-empty.svg" alt="clue 1"></span>
+        <span class="pumpkin-slot"><img id="accuse-pumpkin-1" src="assets/icons/pumpkin-empty.svg" alt="clue 2"></span>
+        <span class="pumpkin-slot"><img id="accuse-pumpkin-2" src="assets/icons/pumpkin-empty.svg" alt="clue 3"></span>
+      </div>
+      <button class="music-btn" id="accuse-music-btn" aria-label="Toggle music">
+        <span class="music-label">music:</span>
+        <span id="accuse-music-status">on</span>
+        <span class="audio-bars playing" id="accuse-audio-bars">
+          <span></span><span></span><span></span>
+        </span>
+      </button>
+    </div>
+
+    <div class="accusation-content">
+      <h1 class="accusation-title">who do you suspect?</h1>
+      <p class="accusation-subtitle">select the guest who do you think is the real vampire in the halloween party</p>
+      <div id="suspects-grid" class="suspects-grid"></div>
+      <button id="cancel-accusation-btn" class="cancel-accusation-btn">← return to investigation</button>
+    </div>
+  </div>
+
+  <!-- Verification Suspense Screen (Section 28 & 29) -->
+  <div id="verification-blackout" class="verification-blackout">
+    <div id="verification-text" class="verification-status-text">examining evidence...</div>
+  </div>
+
+  <!-- Result Screen Modal (Figma 13:252 Correct / 13:299 Wrong) -->
+  <div id="result-modal" class="result-screen-modal">
+    <div class="result-card-container">
+      <div class="result-top-content">
+        <div class="result-character-frame">
+          <img id="result-char-img" src="" alt="Vampire Reveal">
+        </div>
+        <div class="result-headings-group">
+          <h1 id="result-title" class="result-main-title">You found the vampire</h1>
+          <p id="result-desc" class="result-description-text"></p>
+        </div>
+      </div>
+      <div class="result-bottom-group">
+        <p class="result-replay-notice">everytime the vampire and clues will be different</p>
+        <div class="result-buttons-row">
+          <button id="result-home-btn" class="result-btn secondary">home</button>
+          <button id="result-share-btn" class="result-btn primary">share</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Feedback for Share -->
+  <div id="share-toast" class="share-toast"></div>
+
+  <!-- Sharing Card Modal Overlay -->
+  <div id="share-card-modal" class="share-card-modal" style="display:none;">
+    <div class="share-card-backdrop" id="share-card-backdrop"></div>
+    <div class="share-card-wrapper" id="share-card-wrapper">
+      <!-- Close button on right top outside of the card -->
+      <button id="share-card-close" class="share-card-close" aria-label="Close card">✕</button>
+      
+      <div class="share-card-frame" id="share-card-frame">
+        <img src="https://ik.imagekit.io/HUDs/halloween/sharing%20card%202.png" class="share-card-bg" alt="Vampire Halloween" draggable="false">
+        <canvas id="share-card-canvas" class="share-card-canvas"></canvas>
+        <div class="share-card-glare" id="share-card-glare"></div>
+        <div class="share-card-stroke" id="share-card-stroke"></div>
+        <button id="share-card-cta" class="share-card-cta" aria-label="Copy invitation link" title="Click to copy link"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { SoundEngine } from './js/audio.js';
+import { GameState } from './js/game-state.js';
+import { InvestigationUI } from './js/investigation-ui.js';
+
+// Sound Engine initialization
+const sound = new SoundEngine();
+const gameState = new GameState();
+const ui = new InvestigationUI(gameState, sound);
+const params = new URLSearchParams(window.location.search);
+const initialMusic = params.get('music') !== 'off';
+
+// Music toggle synchronization (Table + Investigation header + Accusation screen)
+const musicBtn = document.getElementById('music-btn');
+const musicStatus = document.getElementById('music-status');
+const audioBars = document.getElementById('audio-bars');
+const invMusicBtn = document.getElementById('inv-music-btn');
+const invMusicStatus = document.getElementById('inv-music-status');
+const invAudioBars = document.getElementById('inv-audio-bars');
+const accuseMusicBtn = document.getElementById('accuse-music-btn');
+const accuseMusicStatus = document.getElementById('accuse-music-status');
+const accuseAudioBars = document.getElementById('accuse-audio-bars');
+const accuseCluesBox = document.getElementById('accuse-clues-box');
+
+const updateMusicElements = (isOn) => {
+  if (musicStatus) musicStatus.textContent = isOn ? 'on' : 'off';
+  if (invMusicStatus) invMusicStatus.textContent = isOn ? 'on' : 'off';
+  if (accuseMusicStatus) accuseMusicStatus.textContent = isOn ? 'on' : 'off';
+  if (isOn) {
+    audioBars?.classList.add('playing');
+    invAudioBars?.classList.add('playing');
+    accuseAudioBars?.classList.add('playing');
+    if (musicBtn) musicBtn.style.opacity = '1';
+    if (invMusicBtn) invMusicBtn.style.opacity = '1';
+    if (accuseMusicBtn) accuseMusicBtn.style.opacity = '1';
+  } else {
+    audioBars?.classList.remove('playing');
+    invAudioBars?.classList.remove('playing');
+    accuseAudioBars?.classList.remove('playing');
+    if (musicBtn) musicBtn.style.opacity = '0.6';
+    if (invMusicBtn) invMusicBtn.style.opacity = '0.6';
+    if (accuseMusicBtn) accuseMusicBtn.style.opacity = '0.6';
+  }
+};
+
+updateMusicElements(initialMusic);
+
+if (initialMusic) {
+  sound.start();
+  const unlock = () => {
+    sound.resumeContext();
+    if (!sound.isMuted) sound.start();
+  };
+  ['pointerdown', 'click', 'touchstart'].forEach(evt => {
+    window.addEventListener(evt, unlock, { once: true, passive: true });
+  });
+} else {
+  sound.mute();
+}
+
+const toggleMusic = (e) => {
+  if (e) e.stopPropagation();
+  const isNowOn = sound.toggle();
+  updateMusicElements(isNowOn);
+};
+
+if (musicBtn) musicBtn.addEventListener('click', toggleMusic);
+if (invMusicBtn) invMusicBtn.addEventListener('click', toggleMusic);
+if (accuseMusicBtn) accuseMusicBtn.addEventListener('click', toggleMusic);
+if (accuseCluesBox) {
+  accuseCluesBox.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sound.playClick();
+    ui.openCluesModalList();
+  });
+}
+
+// Intro CTA ("Let's find it →")
+const introModal = document.getElementById('intro-modal');
+const findCta = document.getElementById('find-cta');
+const bottomBar = document.getElementById('bottom-bar');
+
+let introDismissed = false;
+const dismissIntro = (e) => {
+  if (introDismissed) return;
+  introDismissed = true;
+  if (e) e.stopPropagation();
+  sound.playClick();
+  sound.resumeContext();
+
+  document.body.classList.remove('intro-showing');
+  introModal.classList.add('fade-out');
+  introModal.style.pointerEvents = 'none';
+
+  setTimeout(() => {
+    ui.canHover = true;
+  }, 400);
+
+  if (bottomBar) {
+    setTimeout(() => {
+      bottomBar.classList.add('visible');
+    }, 600);
+  }
+};
+
+if (findCta) {
+  findCta.addEventListener('click', dismissIntro);
+  findCta.addEventListener('pointerdown', (e) => e.stopPropagation());
+}
+if (introModal) {
+  introModal.addEventListener('click', dismissIntro);
+}
+
+// Smooth Parallax on Mouse Move
+const bgLayer = document.getElementById('bg-layer');
+const charsLayer = document.getElementById('chars-layer');
+const fgLayer = document.getElementById('fg-layer');
+const stageCharacterImg = document.getElementById('stage-character-img');
+
+let targetX = 0, targetY = 0;
+let curX = 0, curY = 0;
+
+window.addEventListener('mousemove', (e) => {
+  targetX = (e.clientX / window.innerWidth  - 0.5) * 2;
+  targetY = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+
+// Gyroscope / Device orientation support for mobile & tablet
+if (window.DeviceOrientationEvent) {
+  window.addEventListener('deviceorientation', (e) => {
+    if (e.gamma != null && e.beta != null) {
+      targetX = Math.max(-1, Math.min(1, e.gamma / 28));
+      targetY = Math.max(-1, Math.min(1, (e.beta - 40) / 28));
+    }
+  });
+}
+
+document.addEventListener('mouseleave', () => {
+  targetX = 0;
+  targetY = 0;
+});
+
+function parallaxLoop() {
+  curX += (targetX - curX) * 0.05;
+  curY += (targetY - curY) * 0.05;
+
+  const isInvestigating = document.body.classList.contains('investigating');
+
+  if (!isInvestigating) {
+    // Apply parallax to pub scene only when on main table view
+    if (bgLayer) bgLayer.style.transform = `translate(${curX * 12}px, ${curY * 8}px)`;
+    if (charsLayer) charsLayer.style.transform = `translate(${curX * -6}px, ${curY * -4}px)`;
+    if (fgLayer) fgLayer.style.transform = `translate(${curX * -14}px, ${curY * -8}px)`;
+  } else {
+    // When investigating: strictly keep the current front photo on parallax, not background pub images to eliminate lagging
+    if (stageCharacterImg) {
+      stageCharacterImg.style.transform = `translate3d(${(curX * -18).toFixed(2)}px, ${(curY * -12).toFixed(2)}px, 0px) rotateY(${(curX * 2.5).toFixed(2)}deg) rotateX(${(-curY * 2.0).toFixed(2)}deg)`;
+    }
+  }
+
+  requestAnimationFrame(parallaxLoop);
+}
+parallaxLoop();
+</script>
+</body>
+</html>

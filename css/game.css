@@ -1,0 +1,1380 @@
+/* ============================================================
+   HALLOWEEN VAMPIRE PUB — INTERACTIVE MYSTERY GAME STYLES
+   Visual source of truth: Figma nodes 13:125, 13:346, 13:600,
+   13:733, 13:888, 13:252, 13:299.
+   ============================================================ */
+
+/* ── Top Clues Indicator in Pub Screen (Updated to use Pumpkin SVGs) ── */
+.clues-box .pumpkin-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.clues-box .pumpkin-slot img {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* ── Main Pub Logo (Centered, 160px width, 32px from top) ── */
+.pub-logo {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 1050;
+  transition: opacity 0.3s ease;
+}
+
+body.investigating .pub-logo,
+body.accusing .pub-logo,
+body:has(#investigation-overlay.active) .pub-logo,
+body:has(#accusation-modal.visible) .pub-logo {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.investigating .top-ui,
+body.accusing .top-ui,
+body:has(#investigation-overlay.active) .top-ui,
+body:has(#accusation-modal.visible) .top-ui {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.intro-showing .top-ui .clues-box {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* ── Investigation Main Screen Overlay ── */
+#investigation-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 120;
+  background: rgba(10, 6, 8, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s ease;
+  overflow: hidden;
+  user-select: none;
+}
+
+#investigation-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* ── Left Vertical Navigation Toolbar (Figma 13:162) ── */
+.investigation-left-toolbar {
+  position: absolute;
+  left: 36px;
+  top: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  z-index: 150;
+}
+
+.toolbar-hint-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: rgba(249, 232, 217, 0.6);
+  letter-spacing: 0.5px;
+  text-transform: lowercase;
+  white-space: nowrap;
+  pointer-events: none;
+  margin-bottom: 2px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.inspect-tool-btn {
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(249, 232, 217, 0.4);
+  background: rgba(10, 6, 8, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  position: relative;
+  outline: none;
+  padding: 0;
+}
+
+.inspect-tool-btn img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  pointer-events: none;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.inspect-tool-btn:hover {
+  border-color: rgba(249, 232, 217, 0.85);
+  box-shadow: 0 0 14px rgba(249, 232, 217, 0.25);
+  transform: translateY(-1px);
+}
+
+.inspect-tool-btn.active {
+  background: rgba(249, 232, 217, 0.4);
+  border-color: #f9e8d9;
+  box-shadow: 0 0 16px rgba(249, 232, 217, 0.35);
+}
+
+/* Tooltip on hover */
+.inspect-tool-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  background: rgba(10, 6, 8, 0.85);
+  border: 1px solid rgba(249, 232, 217, 0.3);
+  color: #f9e8d9;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.inspect-tool-btn:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* ── Top Center "← back to table" centered inside character block (Figma 13:148) ── */
+.back-to-table-btn {
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: none;
+  border: none;
+  color: #f9e8d9;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  cursor: pointer;
+  letter-spacing: 0.8px;
+  opacity: 0.85;
+  transition: all 0.3s ease;
+  z-index: 150;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  outline: none;
+  pointer-events: auto;
+}
+
+.back-to-table-btn:hover {
+  opacity: 1;
+  text-shadow: 0 0 14px rgba(249, 232, 217, 0.6);
+  transform: translateX(-50%) scale(1.03);
+}
+
+/* ── Center Character Stage (Figma 13:145, 13:149, 13:152) ── */
+.character-stage {
+  position: absolute;
+  left: 96px;
+  right: 440px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: visible;
+  z-index: 120;
+  pointer-events: none;
+}
+
+.character-display-container {
+  position: absolute;
+  top: 88px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  pointer-events: auto;
+  overflow: visible;
+  transition: top 0.25s ease;
+  z-index: 1; /* Layer 1: Image behind gradient */
+  perspective: 1200px;
+}
+
+/* When viewing an area (face, hand, etc.) add 48px space between back button and image */
+.character-display-container.area-view {
+  top: 136px; /* 88px baseline + 48px additional gap */
+}
+
+.character-image-box {
+  position: relative;
+  width: min(100%, 720px);
+  aspect-ratio: 1024 / 1536;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+.character-image-box img.stage-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1024 / 1536;
+  object-fit: contain;
+  object-position: top center;
+  display: block;
+  filter: drop-shadow(0 25px 45px rgba(0, 0, 0, 0.9));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Blur-fade-in animation when switching inspection area images */
+@keyframes blurFadeEnter {
+  0%   { opacity: 0; filter: drop-shadow(0 25px 45px rgba(0,0,0,0.9)) blur(18px); }
+  60%  { opacity: 0.85; filter: drop-shadow(0 25px 45px rgba(0,0,0,0.9)) blur(3px); }
+  100% { opacity: 1; filter: drop-shadow(0 25px 45px rgba(0,0,0,0.9)) blur(0px); }
+}
+
+.character-image-box img.stage-img.blur-fade-enter {
+  animation: blurFadeEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Legacy transitioning class (kept for safety) */
+.character-image-box img.stage-img.transitioning {
+  opacity: 0;
+}
+
+/* Hotspots overlay on full character - Hidden completely as requested */
+.hotspots-wrapper {
+  display: none !important;
+}
+
+.inspect-hotspot {
+  display: none !important;
+}
+
+/* Black gradient overlay sitting directly BETWEEN image (behind) and typography/arrows (in front) */
+.investigation-gradient-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 420px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.45) 30%,
+    rgba(0, 0, 0, 0.88) 65%,
+    rgba(0, 0, 0, 0.99) 88%,
+    #000000 100%
+  );
+  pointer-events: none;
+  z-index: 2; /* Layer 2: In between image and text */
+}
+
+/* ── Center Bottom: Name and Prev/Next (Figma 13:152) positioned over black gradient ── */
+.character-bottom-group {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  pointer-events: auto;
+  z-index: 3; /* Layer 3: Directly on top of gradient */
+}
+
+.character-name-display {
+  font-family: 'Jolly Lodger', cursive;
+  font-size: clamp(120px, 14vw, 190px);
+  line-height: 0.82;
+  color: #f9e8d9;
+  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.95), 0 0 30px rgba(249, 232, 217, 0.2);
+  margin: 0;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.character-nav-pills {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.char-nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgba(249, 232, 217, 0.2);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  outline: none;
+  padding: 0;
+}
+
+.char-nav-btn img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  pointer-events: none;
+}
+
+.char-nav-btn:hover {
+  background: rgba(249, 232, 217, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 0 14px rgba(249, 232, 217, 0.3);
+}
+
+.char-nav-btn.disabled, .char-nav-btn:disabled {
+  opacity: 0.22;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ── Right Side Panel (Figma 13:191) ── */
+.investigation-right-panel {
+  position: absolute;
+  right: 56px;
+  top: 48px;
+  bottom: 48px;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 150;
+  pointer-events: auto;
+}
+
+.panel-top-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Clues counter & Music top row */
+.panel-header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 56px;
+}
+
+.counter-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(249, 232, 217, 0.4);
+  background: rgba(10, 6, 8, 0.45);
+  backdrop-filter: blur(8px);
+  padding: 10px 18px;
+  font-family: 'Autour One', cursive;
+  font-size: 14px;
+  color: rgba(249, 232, 217, 0.6);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.counter-box:hover {
+  border-color: rgba(249, 232, 217, 0.85);
+  box-shadow: 0 0 14px rgba(249, 232, 217, 0.25);
+}
+
+.counter-box .pumpkins-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.counter-box .pumpkin-indicator {
+  width: 16px;
+  height: 16px;
+  display: block;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.counter-box .pumpkin-indicator.pulse {
+  transform: scale(1.3);
+}
+
+/* ── Large Evidence Panel (Figma 13:234, 13:851) ── */
+.large-evidence-box {
+  width: 100%;
+  min-height: 242px;
+  height: auto;
+  border: 1px solid rgba(249, 232, 217, 0.4);
+  background: rgba(10, 6, 8, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 24px; /* Outer clue panel box padding: 24px */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.large-evidence-box:hover {
+  border-color: rgba(249, 232, 217, 0.85);
+  box-shadow: 0 0 16px rgba(249, 232, 217, 0.25);
+}
+
+/* State 0: Not any clues found */
+.evidence-empty-view {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.evidence-empty-view p {
+  font-family: 'Autour One', cursive;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(249, 232, 217, 0.4);
+  margin: 0;
+}
+
+/* States 1, 2, 3: Clue items list */
+.evidence-active-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+}
+
+.evidence-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Autour One', cursive;
+  font-size: 13.5px;
+  color: #f9e8d9;
+  line-height: 1.4;
+  padding: 16px; /* Each clue padding: 16px on all sides */
+  box-sizing: border-box;
+  width: 100%;
+  background: transparent !important; /* No fill */
+  border: none !important; /* No stroke */
+  border-radius: 0;
+  transition: opacity 0.2s ease;
+}
+
+.evidence-row:hover {
+  background: transparent !important;
+  border: none !important;
+  opacity: 0.85;
+}
+
+.evidence-row .evidence-pumpkin {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.evidence-row .evidence-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 250px;
+}
+
+.evidence-row.empty {
+  color: rgba(249, 232, 217, 0.4);
+  background: transparent !important;
+  border: none !important;
+}
+
+/* ── Character Dialogue Block (Figma 13:237) ── */
+.character-dialogue-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.dialogue-text-p {
+  font-family: 'Autour One', cursive;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.45;
+  color: #f9e8d9;
+  margin: 0;
+}
+
+.dialogue-author-p {
+  font-family: 'Autour One', cursive;
+  font-size: 14px;
+  color: rgba(249, 232, 217, 0.6);
+  text-align: right;
+  margin: 0;
+}
+
+/* ── Bottom Section: Found Vampire Action (Figma 13:242) ── */
+.panel-bottom-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+}
+
+.action-hint-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: rgba(249, 232, 217, 0.6);
+  text-align: center;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.found-vampire-btn {
+  width: 100%;
+  height: 64px;
+  background: rgba(249, 232, 217, 0.35);
+  border: 1px solid rgba(249, 232, 217, 0.5);
+  color: #0b0b0b;
+  font-family: 'Autour One', cursive;
+  font-size: 18px;
+  letter-spacing: 0.8px;
+  cursor: default;
+  border-radius: 2px;
+  transition: background 0.25s ease, border-color 0.25s ease;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+}
+
+/* No hover interaction or visual change when button is disabled */
+.found-vampire-btn:not(.enabled):hover {
+  background: rgba(249, 232, 217, 0.35);
+  border-color: rgba(249, 232, 217, 0.5);
+  cursor: default;
+  box-shadow: none !important;
+}
+
+.found-vampire-btn.enabled {
+  background: #f9e8d9;
+  border-color: #ffffff;
+  color: #0b0b0b;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+.found-vampire-btn.enabled:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+/* ── Click-and-Hold Clue Discovery Overlay (Figma 13:626, 13:733) ── */
+.clue-discovery-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  touch-action: none !important;
+  z-index: 160;
+  pointer-events: auto !important;
+  /* Unified hitbox enclosing both the circle (72px + 16px ::before padding each side = 104px) + gap + text */
+  width: 400px;
+  min-height: 180px;
+  padding: 32px 40px;
+  border-radius: 32px;
+  box-sizing: border-box;
+  overflow: visible;
+  background-color: rgba(0, 0, 0, 0.001) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clue-discovery-indicator::before,
+.clue-discovery-indicator::after {
+  display: none !important;
+  content: none !important;
+}
+
+.clue-discovery-indicator,
+.clue-discovery-indicator * {
+  cursor: pointer !important;
+}
+
+.hold-progress-ring {
+  width: 72px;
+  height: 72px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+  background-color: rgba(10, 6, 8, 0.5) !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  transition: transform 0.25s ease;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Expansive circular hitbox around the ring so the entire circle and its perimeter are effortless to click */
+.hold-progress-ring::before {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  background: transparent !important;
+}
+
+.clue-discovery-indicator:hover .hold-progress-ring {
+  transform: scale(1.04);
+}
+
+.hold-progress-ring svg {
+  transform: rotate(-90deg);
+  width: 72px;
+  height: 72px;
+  pointer-events: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.hold-progress-ring circle {
+  pointer-events: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.hold-progress-ring circle.bg-circle {
+  fill: rgba(10, 6, 8, 0.5) !important;
+  stroke: #f9e8d9;
+  stroke-opacity: 0.25;
+  stroke-width: 6;
+  pointer-events: none !important;
+  transition: stroke-opacity 0.25s ease;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.clue-discovery-indicator:hover .hold-progress-ring circle.bg-circle {
+  stroke-opacity: 0.45;
+}
+
+.hold-progress-ring circle.progress-circle {
+  fill: none !important;
+  stroke: #f9e8d9;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 188.5; /* 2 * PI * 30 */
+  stroke-dashoffset: 188.5;
+  transition: stroke-dashoffset 0.05s linear;
+  pointer-events: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.hold-progress-ring.active circle.progress-circle,
+.clue-discovery-indicator.holding .hold-progress-ring circle.progress-circle {
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+.hold-prompt-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  color: #f9e8d9;
+  letter-spacing: 0.6px;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  white-space: nowrap;
+  transition: color 0.25s ease;
+}
+
+.clue-discovery-indicator:hover .hold-prompt-text {
+  color: #ffffff;
+  text-shadow: none !important;
+}
+
+/* ── Parchment Clue Reveal Modal (Figma 13:888 / 13:1022) ── */
+.clue-reveal-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 6, 8, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 260;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.clue-reveal-modal.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.parchment-card {
+  position: relative;
+  width: min(800px, 92vw);
+  min-height: 520px;
+  background-color: transparent;
+  background-image: url('https://ik.imagekit.io/HUDs/halloween/paper%20background.png?updatedAt=1789896688278');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.95);
+  padding: clamp(52px, 6.5vw, 76px) clamp(48px, 6vw, 84px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 4px;
+  animation: parchmentPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-sizing: border-box;
+}
+
+@keyframes parchmentPop {
+  from { opacity: 0; transform: scale(0.92) translateY(14px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.parchment-header {
+  font-family: 'Autour One', cursive;
+  font-size: 24px;
+  color: rgba(15, 13, 28, 0.6);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.parchment-body {
+  font-family: 'Jolly Lodger', cursive;
+  font-size: clamp(34px, 4.5vw, 48px);
+  line-height: 1.15;
+  color: #0f0d1c;
+  margin: 24px 0;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.empty-clues-text {
+  font-family: 'Autour One', cursive;
+  font-size: clamp(17px, 1.8vw, 22px);
+  line-height: 1.4;
+  color: rgba(15, 13, 28, 0.7);
+  display: block;
+  text-align: center;
+  margin: 32px 0;
+}
+
+.parchment-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.understood-btn {
+  font-family: 'Autour One', cursive;
+  font-size: 16px;
+  color: #0f0d1c;
+  background: transparent;
+  border: 1.5px solid #0f0d1c;
+  padding: 10px 32px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  outline: none;
+}
+
+.understood-btn:hover {
+  background: #0f0d1c;
+  color: #f4ebd9;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Vampire Accusation Selection Modal (Section 27) ── */
+.accusation-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 6, 8, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 220;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.accusation-modal.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.accusation-logo {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.accusation-top-ui {
+  position: absolute;
+  top: 48px;
+  right: 48px;
+  display: flex;
+  gap: 56px;
+  align-items: center;
+  z-index: 10;
+}
+
+.accusation-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  max-width: 1080px;
+  width: 100%;
+}
+
+.accusation-title {
+  font-family: 'Jolly Lodger', cursive;
+  font-size: clamp(64px, 8vw, 110px);
+  line-height: 0.9;
+  color: #f9e8d9;
+  text-shadow: 0 10px 40px rgba(0,0,0,0.9);
+  margin: 0;
+  text-align: center;
+}
+
+.accusation-subtitle {
+  font-family: 'Autour One', cursive;
+  font-size: 16px;
+  color: rgba(249, 232, 217, 0.7);
+  margin: 0;
+  text-align: center;
+}
+
+.suspects-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+@media (max-width: 900px) {
+  .suspects-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.suspect-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: rgba(20, 14, 18, 0.6);
+  border: 1px solid rgba(249, 232, 217, 0.35);
+  border-radius: 4px;
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.suspect-card:hover {
+  border-color: #f9e8d9;
+  background: rgba(249, 232, 217, 0.15);
+  transform: translateY(-8px);
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.suspect-card img,
+.suspect-card:hover img {
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+.suspect-avatar {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #0f0d1c;
+}
+
+.suspect-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.suspect-card-name {
+  font-family: 'Jolly Lodger', cursive;
+  font-size: 32px;
+  line-height: 1;
+  color: #f9e8d9;
+  margin: 0;
+}
+
+.cancel-accusation-btn {
+  background: none;
+  border: none;
+  color: rgba(249, 232, 217, 0.6);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 15px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  margin-top: 10px;
+}
+
+.cancel-accusation-btn:hover {
+  color: #f9e8d9;
+}
+
+/* ── Verification Suspense Screen (Figma 13:346, Section 28 & 29) ── */
+.verification-blackout {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+
+.verification-blackout.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.verification-status-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 20px;
+  color: #f9e8d9;
+  letter-spacing: 2px;
+  animation: pulseVerifying 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes pulseVerifying {
+  from { opacity: 0.3; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1.02); }
+}
+
+/* ── Result Screens (Figma 13:252 Success, 13:299 Fail) ── */
+.result-screen-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 6, 8, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.result-screen-modal.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.result-card-container {
+  position: relative;
+  width: min(874px, 92vw);
+  min-height: 640px;
+  background: #f9e8d9;
+  border-radius: 4px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.95);
+  padding: clamp(32px, 4vw, 56px) clamp(32px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  color: #0f0d1c;
+  animation: resultSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes resultSlideUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.result-top-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+
+.result-character-frame {
+  width: 240px;
+  height: 240px;
+  background: #0f0d1c;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.result-character-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.result-headings-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.result-main-title {
+  font-family: 'Jolly Lodger', cursive;
+  font-size: clamp(48px, 5.5vw, 64px);
+  line-height: 0.9;
+  color: #0f0d1c;
+  margin: 0;
+}
+
+.result-description-text {
+  font-family: 'Autour One', cursive;
+  font-size: clamp(15px, 1.3vw, 18px);
+  line-height: 1.45;
+  color: #0f0d1c;
+  max-width: 580px;
+  margin: 0;
+}
+
+.result-bottom-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  margin-top: 32px;
+}
+
+.result-replay-notice {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 15px;
+  color: rgba(15, 13, 28, 0.6);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.result-buttons-row {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  width: 100%;
+  max-width: 520px;
+}
+
+.result-btn {
+  flex: 1;
+  font-family: 'Autour One', cursive;
+  font-size: 16px;
+  padding: 12px 24px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  outline: none;
+  text-align: center;
+}
+
+.result-btn.secondary {
+  border: 1.5px solid #0f0d1c;
+  background: transparent;
+  color: #0f0d1c;
+}
+
+.result-btn.secondary:hover {
+  background: rgba(15, 13, 28, 0.08);
+}
+
+.result-btn.primary {
+  border: 1.5px solid #0f0d1c;
+  background: #0f0d1c;
+  color: #f9e8d9;
+}
+
+.result-btn.primary:hover,
+#result-share-btn:hover {
+  background: #000000;
+  border-color: #000000;
+  color: #ffffff;
+  box-shadow: none !important;
+}
+
+/* Toast notification for copy share */
+.share-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(10, 6, 8, 0.9);
+  border: 1px solid rgba(249, 232, 217, 0.4);
+  color: #f9e8d9;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  padding: 10px 24px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  z-index: 500;
+}
+
+.share-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Sharing Card Modal & 3D Interactive Frame ── */
+.share-card-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 2, 6, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.share-card-modal.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.share-card-backdrop {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+.share-card-wrapper {
+  position: relative;
+  perspective: 1000px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Close button placed right top OUTSIDE of the card */
+.share-card-close {
+  position: absolute;
+  top: -46px;
+  right: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(12, 8, 10, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(249, 232, 217, 0.5);
+  color: #f9e8d9;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  transition: all 0.2s ease;
+  outline: none;
+  box-shadow: none !important;
+}
+
+.share-card-close:hover {
+  background: #000000;
+  border-color: #ffffff;
+  color: #ffffff;
+  transform: scale(1.08);
+  box-shadow: none !important;
+}
+
+.share-card-frame {
+  position: relative;
+  width: 360px;
+  height: 600px;
+  max-width: 88vw;
+  max-height: 84vh;
+  aspect-ratio: 360 / 600;
+  border-radius: 0 !important;
+  overflow: hidden;
+  box-shadow: none !important;
+  border: 1px solid rgba(249, 232, 217, 0.25);
+  transform-style: preserve-3d;
+  transition: transform 0.12s ease-out;
+  cursor: default;
+  user-select: none;
+}
+
+.share-card-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  display: block;
+  border-radius: 0 !important;
+}
+
+.share-card-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  border-radius: 0 !important;
+}
+
+.share-card-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  mix-blend-mode: screen;
+  z-index: 6;
+  border-radius: 0 !important;
+}
+
+/* 3D Reflective Stroke moving with perspective tilt */
+.share-card-stroke {
+  position: absolute;
+  inset: 0;
+  border-radius: 0 !important;
+  pointer-events: none;
+  z-index: 10;
+  box-sizing: border-box;
+  border: 1.5px solid transparent;
+  background: linear-gradient(var(--stroke-angle, 135deg), 
+    rgba(255, 255, 255, 0.95) 0%, 
+    rgba(249, 232, 217, 0.4) 25%, 
+    rgba(40, 20, 30, 0.05) 50%, 
+    rgba(249, 232, 217, 0.35) 75%, 
+    rgba(255, 255, 255, 0.9) 100%) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  transition: opacity 0.2s ease;
+}
+
+.share-card-cta {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  right: 24px;
+  height: 56px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 15;
+  outline: none;
+  border-radius: 0 !important;
+  transition: background 0.2s ease;
+}
+
+.share-card-cta:hover {
+  background: rgba(255, 255, 255, 0.08);
+}

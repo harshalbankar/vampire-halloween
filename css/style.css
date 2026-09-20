@@ -1,0 +1,347 @@
+@import url('https://fonts.googleapis.com/css2?family=Autour+One&family=Jolly+Lodger&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000000;
+  color: #f9e8d9;
+  font-family: 'Autour One', cursive, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#experience-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #000000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1200px;
+}
+
+/* Background canvas wrapper with 3D parallax tilt – zoomed in to hide edges during tilt */
+#scene-viewport {
+  position: absolute;
+  top: -15%;
+  left: -15%;
+  width: 130%;
+  height: 130%;
+  background: #000000;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+#gl-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000000;
+}
+
+/* Bats overlay canvas */
+#bats-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Vignette and atmosphere overlay */
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(0, 0, 0, 0) 30%,
+    rgba(0, 0, 0, 0.5) 65%,
+    rgba(0, 0, 0, 0.98) 100%
+  );
+  z-index: 8;
+}
+
+/* UI Overlay container */
+.ui-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Top Right Music Button (Exact Figma node 7:13) */
+.music-toggle-btn {
+  position: absolute;
+  top: 48px;
+  right: 48px;
+  width: 132px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(249, 232, 217, 0.4);
+  background: rgba(11, 11, 15, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 4px;
+  cursor: pointer;
+  pointer-events: auto;
+  font-family: 'Autour One', cursive, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(249, 232, 217, 0.05);
+}
+
+.music-toggle-btn .music-label {
+  color: rgba(249, 232, 217, 0.6);
+  transition: color 0.3s ease;
+}
+
+.music-toggle-btn .music-status {
+  color: #f9e8d9;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 24px;
+  text-align: left;
+}
+
+.music-toggle-btn:hover {
+  border-color: rgba(249, 232, 217, 0.85);
+  background: rgba(20, 18, 25, 0.65);
+  transform: translateY(-1px);
+}
+
+.music-toggle-btn:hover .music-label {
+  color: rgba(249, 232, 217, 0.9);
+}
+
+.music-toggle-btn:active {
+  transform: translateY(1px);
+}
+
+.music-toggle-btn.active .music-status {
+  text-shadow: 0 0 8px rgba(249, 232, 217, 0.8);
+}
+
+.music-toggle-btn.muted {
+  border-color: rgba(249, 232, 217, 0.2);
+  background: rgba(10, 10, 10, 0.3);
+}
+
+.music-toggle-btn.muted .music-status {
+  color: rgba(249, 232, 217, 0.4);
+  text-shadow: none;
+}
+
+/* Sound wave icon indicator */
+.audio-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 12px;
+  margin-left: 2px;
+}
+
+.audio-wave span {
+  display: block;
+  width: 2px;
+  height: 4px;
+  background-color: #f9e8d9;
+  border-radius: 1px;
+  transition: height 0.2s ease, opacity 0.3s ease;
+}
+
+.audio-wave.playing span:nth-child(1) {
+  animation: waveBar 0.9s ease-in-out infinite alternate;
+}
+.audio-wave.playing span:nth-child(2) {
+  animation: waveBar 0.7s ease-in-out 0.2s infinite alternate;
+}
+.audio-wave.playing span:nth-child(3) {
+  animation: waveBar 1.1s ease-in-out 0.4s infinite alternate;
+}
+
+.audio-wave.muted span {
+  height: 2px !important;
+  opacity: 0.3;
+  animation: none !important;
+}
+
+@keyframes waveBar {
+  0% { height: 3px; }
+  100% { height: 12px; }
+}
+
+/* Bottom "start experience" button */
+.start-btn {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  height: 72px;
+  background: #f9e8d9;
+  color: #0b0b0b;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  font-family: 'Autour One', cursive, sans-serif;
+  font-size: 20px;
+  line-height: 1.4;
+  letter-spacing: 0.5px;
+  transition: background 0.25s ease, transform 0.25s ease;
+  box-shadow: none !important;
+}
+
+.start-btn span {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease;
+}
+
+.start-btn:hover {
+  transform: translateX(-50%) translateY(-2px);
+  background: #ffffff !important;
+  color: #0b0b0b;
+  box-shadow: none !important;
+}
+
+.start-btn:active {
+  transform: translateX(-50%) translateY(0);
+  box-shadow: none !important;
+}
+  }
+}
+
+/* Time-travel atmospheric surge flash */
+.time-travel-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 20%, rgba(200, 225, 255, 0.6), rgba(120, 30, 180, 0.3) 50%, rgba(0, 0, 0, 0) 80%);
+  opacity: 0;
+  z-index: 15;
+  transition: opacity 0.5s ease;
+}
+
+.time-travel-flash.active {
+  animation: surgeFlash 1.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes surgeFlash {
+  0% { opacity: 0; filter: brightness(1); }
+  25% { opacity: 0.75; filter: brightness(1.6); }
+  60% { opacity: 0.4; filter: brightness(1.2); }
+  100% { opacity: 0; filter: brightness(1); }
+}
+
+/* Interactive Hint notification */
+.audio-hint {
+  position: absolute;
+  top: 104px;
+  right: 48px;
+  font-size: 11px;
+  color: rgba(249, 232, 217, 0.4);
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 0.4s ease;
+}
+
+.audio-hint.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Responsive queries */
+@media (max-width: 768px) {
+  .music-toggle-btn {
+    top: 24px;
+    right: 24px;
+    transform: scale(0.9);
+    transform-origin: top right;
+  }
+  .audio-hint {
+    top: 72px;
+    right: 24px;
+  }
+  .start-btn {
+    bottom: 36px;
+    width: 270px;
+    height: 60px;
+    font-size: 17px;
+  }
+}
+
+/* ── Minimalist White Line Preloader (Figma node 17:2) ── */
+.preloader {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              visibility 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+
+.preloader.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.preloader-text {
+  position: absolute;
+  top: calc(50% - 48px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Jolly Lodger', cursive;
+  font-size: 38px;
+  line-height: 1;
+  color: rgba(249, 232, 217, 0.85);
+  letter-spacing: 2px;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 0 0 20px rgba(249, 232, 217, 0.35);
+}
+
+.preloader-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 0%;
+  height: 2px;
+  background: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 4px #ffffff;
+  transition: width 0.1s linear;
+}
+
