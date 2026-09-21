@@ -36,7 +36,7 @@ html, body {
   left: -15%;
   width: 130%;
   height: 130%;
-  background: #000000;
+  background: #000000 url('https://ik.imagekit.io/HUDs/halloween/out%20image.png') center / cover no-repeat;
   transform-style: preserve-3d;
   will-change: transform;
 }
@@ -232,8 +232,6 @@ html, body {
   transform: translateX(-50%) translateY(0);
   box-shadow: none !important;
 }
-  }
-}
 
 /* Time-travel atmospheric surge flash */
 .time-travel-flash {
@@ -293,6 +291,50 @@ html, body {
     width: 270px;
     height: 60px;
     font-size: 17px;
+  }
+}
+
+/* ── Mobile and Tablet Device Restriction Screen ── */
+.desktop-only-screen {
+  display: none;
+}
+
+@media (max-width: 1023px), (max-height: 500px) and (orientation: landscape) and (max-width: 1023px) {
+  .desktop-only-screen {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000000 !important;
+    z-index: 9999999 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    box-sizing: border-box;
+    pointer-events: all !important;
+  }
+
+  .desktop-only-content {
+    max-width: 620px;
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .desktop-only-message {
+    font-family: 'Autour One', cursive, sans-serif;
+    font-size: clamp(20px, 4.5vw, 34px);
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+    color: #f9e8d9;
+    text-shadow: 0 0 24px rgba(249, 232, 217, 0.4);
+    margin: 0;
+    user-select: none;
+  }
+
+  #preloader,
+  #experience-container {
+    display: none !important;
   }
 }
 

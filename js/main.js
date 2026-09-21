@@ -108,11 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize Bat System – no time-travel surge callback (ripple/sound removed)
   const batSystem = new BatSystem(batsCanvas, null);
 
-  // Music on by default — attempt immediately, and unlock on any user gesture
-  soundEngine.start();
+  const isMobileOrTablet = () => {
+    return window.innerWidth < 1024 ||
+      (window.matchMedia && window.matchMedia('(max-height: 500px) and (orientation: landscape) and (max-width: 1023px)').matches);
+  };
+
+  // Music on by default on desktop — attempt immediately, and unlock on any user gesture
+  if (!isMobileOrTablet()) {
+    soundEngine.start();
+  }
 
   let userExplicitlyMuted = false;
   const unlockAudio = () => {
+    if (isMobileOrTablet()) return;
     soundEngine.resumeContext();
     if (!userExplicitlyMuted) {
       if (!soundEngine.isPlaying || soundEngine.isMuted) {
@@ -124,6 +132,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   ['pointerdown', 'click', 'touchstart', 'keydown'].forEach((evt) => {
     window.addEventListener(evt, unlockAudio, { passive: true });
+  });
+
+  window.addEventListener('resize', () => {
+    if (isMobileOrTablet() && soundEngine.isPlaying) {
+      soundEngine.mute();
+    }
   });
 
   // Handle browser back button (pageshow event / bfcache restore)

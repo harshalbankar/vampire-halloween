@@ -63,9 +63,9 @@
       display: block;
     }
 
-    /* ── Characters (Strictly locked 760px height, matching hitbox height) ── */
+    /* ── Characters (75% of screen height, responsive like Framer) ── */
     :root {
-      --char-h: 760px;
+      --char-h: 75vh;
     }
 
     #chars-layer {
@@ -73,7 +73,7 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 760px;
+      height: var(--char-h);
       display: flex;
       align-items: flex-end;
       justify-content: center;
@@ -85,9 +85,9 @@
 
     .char-slot {
       position: relative;
-      height: 760px;
+      height: var(--char-h);
       flex: 1 1 0;
-      max-width: 270px;
+      max-width: clamp(210px, calc(var(--char-h) * 0.38), 340px);
       display: flex;
       align-items: flex-end;
       justify-content: center;
@@ -102,7 +102,7 @@
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      height: 760px !important;           /* Strictly 760px tall image */
+      height: var(--char-h) !important;           /* 75% of screen height */
       width: auto !important;
       max-width: none !important;
       object-fit: contain;
@@ -451,6 +451,13 @@
   </style>
 </head>
 <body class="intro-showing">
+<!-- Mobile & Tablet Device Restriction Screen -->
+<div id="desktop-only-screen" class="desktop-only-screen" aria-live="polite">
+  <div class="desktop-only-content">
+    <p class="desktop-only-message">to experience this website open it on desktop</p>
+  </div>
+</div>
+
 <div id="scene">
   <!-- Background -->
   <div id="bg-layer">
@@ -756,11 +763,17 @@ const updateMusicElements = (isOn) => {
   }
 };
 
-updateMusicElements(initialMusic);
+const isMobileOrTablet = () => {
+  return window.innerWidth < 1024 ||
+    (window.matchMedia && window.matchMedia('(max-height: 500px) and (orientation: landscape) and (max-width: 1023px)').matches);
+};
 
-if (initialMusic) {
+updateMusicElements(initialMusic && !isMobileOrTablet());
+
+if (initialMusic && !isMobileOrTablet()) {
   sound.start();
   const unlock = () => {
+    if (isMobileOrTablet()) return;
     sound.resumeContext();
     if (!sound.isMuted) sound.start();
   };
@@ -770,6 +783,12 @@ if (initialMusic) {
 } else {
   sound.mute();
 }
+
+window.addEventListener('resize', () => {
+  if (isMobileOrTablet() && sound.isPlaying) {
+    sound.mute();
+  }
+});
 
 const toggleMusic = (e) => {
   if (e) e.stopPropagation();

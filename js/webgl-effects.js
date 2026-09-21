@@ -36,6 +36,7 @@ export class WebGLEffects {
     this.velo          = 0.0;
     this.timeSurge     = 0.0;
     this.timeSurgeTgt  = 0.0;
+    this.imageRes      = { w: 1936, h: 1097 };
 
     this._build();
   }
@@ -66,11 +67,28 @@ varying vec2 vUv;
 
 uniform sampler2D uTex;
 uniform vec2      uRes;
+uniform vec2      uImageRes;
 uniform float     uTime;
 uniform vec2      uParallax;
 uniform vec2      uMouse;
 uniform float     uVelo;
 uniform float     uSurge;
+
+/* ═══════════════════ ASPECT RATIO FILL / COVER ═══════════════════ */
+vec2 getCoverUv(vec2 uv) {
+  if (uRes.y <= 0.0 || uImageRes.y <= 0.0) return uv;
+  float sAspect = uRes.x / uRes.y;
+  float iAspect = uImageRes.x / uImageRes.y;
+  vec2 cUv = uv;
+  if (sAspect > iAspect) {
+    // Screen is wider than image: crop top and bottom evenly to fill width
+    cUv.y = (uv.y - 0.5) * (iAspect / sAspect) + 0.5;
+  } else {
+    // Screen is narrower than image: crop left and right evenly to fill height
+    cUv.x = (uv.x - 0.5) * (sAspect / iAspect) + 0.5;
+  }
+  return cUv;
+}
 
 /* ═══════════════════ NOISE UTILITIES ═══════════════════ */
 
@@ -218,8 +236,9 @@ void main() {
     dUv += normalize(dir + 0.001) * wave * 0.028 * uSurge;
   }
 
-  // Safely inset UV coordinates by 2.5% so clamped sampling never reaches raw border edges
-  vec2 sampleUv = mix(vec2(0.025, 0.025), vec2(0.975, 0.975), clamp(dUv, 0.0, 1.0));
+  // Responsive desktop fill (aspect-ratio preserving cover)
+  vec2 coverUv = getCoverUv(dUv);
+  vec2 sampleUv = clamp(coverUv, 0.001, 0.999);
 
   // 4. Sample texture with Akella RGB split chromatic aberration
   float ca = length(disp) * 0.45;
@@ -230,9 +249,9 @@ void main() {
   vec4 col;
   if (ca > 0.001) {
     vec2 dir = normalize(disp + 0.0001);
-    vec2 rUv = clamp(sampleUv + dir * ca * 1.5, 0.015, 0.985);
+    vec2 rUv = clamp(sampleUv + dir * ca * 1.5, 0.001, 0.999);
     vec2 gUv = sampleUv;
-    vec2 bUv = clamp(sampleUv - dir * ca * 1.5, 0.015, 0.985);
+    vec2 bUv = clamp(sampleUv - dir * ca * 1.5, 0.001, 0.999);
     col = vec4(
       texture2D(uTex, rUv).r,
       texture2D(uTex, gUv).g,
@@ -243,17 +262,18 @@ void main() {
     col = texture2D(uTex, sampleUv);
   }
 
-  // 5. Calm atmospheric warm light (pumpkins & lanterns)
+  // 5. Calm atmospheric warm light (pumpkins & lanterns anchored to image coords)
+  vec2 texUv = getCoverUv(uv);
   float f1 = sin(uTime * 3.5) * 0.06 + cos(uTime * 6.0) * 0.04;
   float f2 = sin(uTime * 4.0 + 1.1) * 0.05 + cos(uTime * 5.5) * 0.04;
 
-  float gL = smoothstep(0.45, 0.0, length(uv - vec2(0.07, 0.83))) * (1.0 + f1);
-  float gR = smoothstep(0.45, 0.0, length(uv - vec2(0.89, 0.85))) * (1.0 + f2);
-  float gC = smoothstep(0.35, 0.0, length(uv - vec2(0.50, 0.77))) * (1.0 + f1 * 0.9);
+  float gL = smoothstep(0.45, 0.0, length(texUv - vec2(0.07, 0.83))) * (1.0 + f1);
+  float gR = smoothstep(0.45, 0.0, length(texUv - vec2(0.89, 0.85))) * (1.0 + f2);
+  float gC = smoothstep(0.35, 0.0, length(texUv - vec2(0.50, 0.77))) * (1.0 + f1 * 0.9);
   col.rgb += vec3(1.0, 0.52, 0.16) * (gL * 0.30 + gR * 0.36 + gC * 0.24);
 
-  // Moon glow
-  float mDist = length((uv - vec2(0.5, 0.17)) * vec2(1.3, 1.0));
+  // Moon glow anchored to image
+  float mDist = length((texUv - vec2(0.5, 0.17)) * vec2(1.3, 1.0));
   float moon  = smoothstep(0.33, 0.0, mDist) * (0.13 + sin(uTime * 1.4) * 0.03);
   col.rgb    += vec3(0.60, 0.78, 1.0) * moon;
 
@@ -312,6 +332,7 @@ void main() {
     this.U = {
       tex:     gl.getUniformLocation(this.program, 'uTex'),
       res:     gl.getUniformLocation(this.program, 'uRes'),
+      imgRes:  gl.getUniformLocation(this.program, 'uImageRes'),
       time:    gl.getUniformLocation(this.program, 'uTime'),
       par:     gl.getUniformLocation(this.program, 'uParallax'),
       mouse:   gl.getUniformLocation(this.program, 'uMouse'),
@@ -349,6 +370,8 @@ void main() {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
+      this.imageRes.w = img.naturalWidth || img.width || 1936;
+      this.imageRes.h = img.naturalHeight || img.height || 1097;
       gl.bindTexture(gl.TEXTURE_2D, this.bgTexture);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
@@ -357,14 +380,20 @@ void main() {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     };
-    img.onerror = () => console.warn('Failed to load texture:', url);
+    img.onerror = () => {
+      console.warn('Failed to load texture from remote, trying local fallback:', url);
+      if (!url.startsWith('assets/')) {
+        this._loadTex('assets/background.png');
+      }
+    };
     img.src = url;
   }
 
   _resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = this.canvas.clientWidth || window.innerWidth * 1.2;
-    const h = this.canvas.clientHeight || window.innerHeight * 1.2;
+    const w = this.canvas.clientWidth || Math.floor(window.innerWidth * 1.3);
+    const h = this.canvas.clientHeight || Math.floor(window.innerHeight * 1.3);
+    if (w <= 0 || h <= 0) return;
     this.canvas.width  = Math.floor(w * dpr);
     this.canvas.height = Math.floor(h * dpr);
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -417,12 +446,13 @@ void main() {
 
     // Reduced time uniform speed for calm, slow, atmospheric shader movement
     const t = (performance.now() - this.startTime) * 0.00045;
-    gl.uniform1f(this.U.time,  t);
-    gl.uniform2f(this.U.res,   this.canvas.width, this.canvas.height);
-    gl.uniform2f(this.U.par,   this.parallax.x, this.parallax.y);
-    gl.uniform2f(this.U.mouse, this.mouse.x,    this.mouse.y);
-    gl.uniform1f(this.U.velo,  this.velo);
-    gl.uniform1f(this.U.surge, this.timeSurge);
+    gl.uniform1f(this.U.time,   t);
+    gl.uniform2f(this.U.res,    this.canvas.width, this.canvas.height);
+    gl.uniform2f(this.U.imgRes, this.imageRes.w, this.imageRes.h);
+    gl.uniform2f(this.U.par,    this.parallax.x, this.parallax.y);
+    gl.uniform2f(this.U.mouse,  this.mouse.x,    this.mouse.y);
+    gl.uniform1f(this.U.velo,   this.velo);
+    gl.uniform1f(this.U.surge,  this.timeSurge);
 
     if (this.bgTexture) {
       gl.activeTexture(gl.TEXTURE0);

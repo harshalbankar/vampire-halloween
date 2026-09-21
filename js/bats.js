@@ -34,11 +34,14 @@ export class BatSystem {
   /* ─── Resize ─── */
   _resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.canvas.width  = window.innerWidth  * dpr;
-    this.canvas.height = window.innerHeight * dpr;
-    this.ctx.scale(dpr, dpr);
-    this.W = window.innerWidth;
-    this.H = window.innerHeight;
+    const w = this.canvas.clientWidth || Math.floor(window.innerWidth * 1.3);
+    const h = this.canvas.clientHeight || Math.floor(window.innerHeight * 1.3);
+    if (w <= 0 || h <= 0) return;
+    this.canvas.width  = Math.floor(w * dpr);
+    this.canvas.height = Math.floor(h * dpr);
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.W = w;
+    this.H = h;
   }
 
   setParallax(x, y) {
